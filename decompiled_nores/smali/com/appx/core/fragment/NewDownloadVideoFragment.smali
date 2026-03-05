@@ -1040,9 +1040,73 @@
 .end method
 
 .method public encryptFile(Ltn/a;)V
-    .locals 0
+    .locals 6
 
-    # Server sends plain content — skip encryption entirely
+    # MODIFIED: Instead of XOR-encrypting, AES-decrypt in-place for key>=20 files
+    # For key<20 files the server sends plain MP4 — no decryption needed either way
+    const-string v0, "IGNITE_DEBUG"
+    const-string v1, "encryptFile() callback — checking if AES decrypt needed"
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    # Cast param to un.f to access fields
+    check-cast p1, Lun/f;
+
+    # Get saved file path (f29565d)
+    iget-object v0, p1, Lun/f;->f29565d:Ljava/lang/String;
+
+    # Get the NewDownloadModel from ViewModel by savedPath
+    iget-object v1, p0, Lcom/appx/core/fragment/NewDownloadVideoFragment;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
+    const-string v2, "VIDEO_DOWNLOAD_LIST"
+    invoke-virtual {v1, v0, v2}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->getDownloadModel(Ljava/lang/String;Ljava/lang/String;)Lcom/appx/core/model/NewDownloadModel;
+    move-result-object v1
+
+    # If model is null, skip
+    if-eqz v1, :cond_done
+
+    # Get the key
+    invoke-virtual {v1}, Lcom/appx/core/model/NewDownloadModel;->getKey()Ljava/lang/String;
+    move-result-object v2
+
+    # If key is null, skip
+    if-eqz v2, :cond_mark_zero
+
+    # Check key length
+    invoke-virtual {v2}, Ljava/lang/String;->length()I
+    move-result v3
+
+    const/16 v4, 0x14    # 20
+
+    # If key length < 20, just mark as 0 (plain file, no decrypt needed)
+    if-lt v3, v4, :cond_mark_zero
+
+    # Key >= 20: AES-decrypt in-place using b0.h(key, new File(path), true)
+    const-string v3, "IGNITE_DEBUG"
+    const-string v4, "encryptFile: AES decrypting file in-place"
+    invoke-static {v3, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    new-instance v3, Ljava/io/File;
+    invoke-direct {v3, v0}, Ljava/io/File;-><init>(Ljava/lang/String;)V
+
+    const/4 v4, 0x1    # z5 = true (write back to file)
+
+    invoke-static {v2, v3, v4}, Lcom/appx/core/utils/b0;->h(Ljava/lang/String;Ljava/io/File;Z)[B
+
+    const-string v3, "IGNITE_DEBUG"
+    const-string v4, "encryptFile: AES decrypt done — file is now plain MP4"
+    invoke-static {v3, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    :cond_mark_zero
+    # Mark encryption=0 in DB so decryptFile() in ExoActivity is also a no-op
+    iget-object v3, p0, Lcom/appx/core/fragment/NewDownloadVideoFragment;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
+    const-string v4, "VIDEO_DOWNLOAD_LIST"
+    const-string v5, "0"
+    invoke-virtual {v3, v0, v4, v5}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->setEncryptionValue(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+
+    const-string v3, "IGNITE_DEBUG"
+    const-string v4, "encryptFile: marked encryption=0 in DB"
+    invoke-static {v3, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    :cond_done
     return-void
 .end method
 
