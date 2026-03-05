@@ -1,0 +1,86 @@
+.class public final Lcom/journeyapps/barcodescanner/d;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Landroid/view/TextureView$SurfaceTextureListener;
+
+
+# instance fields
+.field public final synthetic a:Lcom/journeyapps/barcodescanner/CameraPreview;
+
+
+# direct methods
+.method public constructor <init>(Lcom/journeyapps/barcodescanner/CameraPreview;)V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    .line 2
+    .line 3
+    .line 4
+    iput-object p1, p0, Lcom/journeyapps/barcodescanner/d;->a:Lcom/journeyapps/barcodescanner/CameraPreview;
+
+    .line 5
+    .line 6
+    return-void
+.end method
+
+
+# virtual methods
+.method public final onSurfaceTextureAvailable(Landroid/graphics/SurfaceTexture;II)V
+    .locals 0
+
+    .line 1
+    invoke-virtual {p0, p1, p2, p3}, Lcom/journeyapps/barcodescanner/d;->onSurfaceTextureSizeChanged(Landroid/graphics/SurfaceTexture;II)V
+
+    .line 2
+    .line 3
+    .line 4
+    return-void
+.end method
+
+.method public final onSurfaceTextureDestroyed(Landroid/graphics/SurfaceTexture;)Z
+    .locals 0
+
+    const/4 p1, 0x0
+
+    return p1
+.end method
+
+.method public final onSurfaceTextureSizeChanged(Landroid/graphics/SurfaceTexture;II)V
+    .locals 0
+
+    .line 1
+    new-instance p1, Lcom/journeyapps/barcodescanner/v;
+
+    .line 2
+    .line 3
+    invoke-direct {p1, p2, p3}, Lcom/journeyapps/barcodescanner/v;-><init>(II)V
+
+    .line 4
+    .line 5
+    .line 6
+    iget-object p2, p0, Lcom/journeyapps/barcodescanner/d;->a:Lcom/journeyapps/barcodescanner/CameraPreview;
+
+    .line 7
+    .line 8
+    invoke-static {p2, p1}, Lcom/journeyapps/barcodescanner/CameraPreview;->access$002(Lcom/journeyapps/barcodescanner/CameraPreview;Lcom/journeyapps/barcodescanner/v;)Lcom/journeyapps/barcodescanner/v;
+
+    .line 9
+    .line 10
+    .line 11
+    invoke-static {p2}, Lcom/journeyapps/barcodescanner/CameraPreview;->access$100(Lcom/journeyapps/barcodescanner/CameraPreview;)V
+
+    .line 12
+    .line 13
+    .line 14
+    return-void
+.end method
+
+.method public final onSurfaceTextureUpdated(Landroid/graphics/SurfaceTexture;)V
+    .locals 0
+
+    return-void
+.end method

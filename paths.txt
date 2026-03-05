@@ -1,0 +1,4 @@
+﻿package:/data/app/~~sj1rqcb4NhTD2o0leodGvg==/com.ignite247-1rSl6tWD_BxuSK2H_89auQ==/base.apk
+package:/data/app/~~sj1rqcb4NhTD2o0leodGvg==/com.ignite247-1rSl6tWD_BxuSK2H_89auQ==/split_config.arm64_v8a.apk
+package:/data/app/~~sj1rqcb4NhTD2o0leodGvg==/com.ignite247-1rSl6tWD_BxuSK2H_89auQ==/split_config.en.apk
+package:/data/app/~~sj1rqcb4NhTD2o0leodGvg==/com.ignite247-1rSl6tWD_BxuSK2H_89auQ==/split_config.xxhdpi.apk

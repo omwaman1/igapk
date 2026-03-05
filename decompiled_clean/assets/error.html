@@ -1,0 +1,11 @@
+<html>
+<body style="text-align:center;padding-top:50px;font-family:sans-serif;">
+<h2 id="msg"></h2>
+<p>Tap back to retry</p>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById("msg").innerText = params.get("msg");
+</script>
+</body>
+</html>

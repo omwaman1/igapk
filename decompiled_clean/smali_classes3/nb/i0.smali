@@ -1,0 +1,3 @@
+.class public abstract Lnb/i0;
+.super Ljava/lang/Object;
+.source "SourceFile"

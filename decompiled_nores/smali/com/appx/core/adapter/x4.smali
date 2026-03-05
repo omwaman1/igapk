@@ -1,0 +1,73 @@
+.class public final Lcom/appx/core/adapter/x4;
+.super Landroidx/recyclerview/widget/x1;
+.source "SourceFile"
+
+
+# instance fields
+.field public final u:Lu7/ud;
+
+.field public final synthetic v:Lcom/appx/core/adapter/y4;
+
+
+# direct methods
+.method public constructor <init>(Lcom/appx/core/adapter/y4;Lu7/ud;)V
+    .locals 1
+
+    .line 1
+    iput-object p1, p0, Lcom/appx/core/adapter/x4;->v:Lcom/appx/core/adapter/y4;
+
+    .line 2
+    .line 3
+    iget-object p1, p2, Lc4/f;->e:Landroid/view/View;
+
+    .line 4
+    .line 5
+    invoke-direct {p0, p1}, Landroidx/recyclerview/widget/x1;-><init>(Landroid/view/View;)V
+
+    .line 6
+    .line 7
+    .line 8
+    iput-object p2, p0, Lcom/appx/core/adapter/x4;->u:Lu7/ud;
+
+    .line 9
+    .line 10
+    iget-object p1, p2, Lu7/ud;->o:Landroid/widget/RelativeLayout;
+
+    .line 11
+    .line 12
+    new-instance p2, Lcom/appx/core/adapter/w4;
+
+    .line 13
+    .line 14
+    const/4 v0, 0x0
+
+    .line 15
+    invoke-direct {p2, p0, v0}, Lcom/appx/core/adapter/w4;-><init>(Lcom/appx/core/adapter/x4;I)V
+
+    .line 16
+    .line 17
+    .line 18
+    invoke-virtual {p1, p2}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+
+    .line 19
+    .line 20
+    .line 21
+    new-instance p2, Lcom/appx/core/adapter/w4;
+
+    .line 22
+    .line 23
+    const/4 v0, 0x1
+
+    .line 24
+    invoke-direct {p2, p0, v0}, Lcom/appx/core/adapter/w4;-><init>(Lcom/appx/core/adapter/x4;I)V
+
+    .line 25
+    .line 26
+    .line 27
+    invoke-virtual {p1, p2}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+
+    .line 28
+    .line 29
+    .line 30
+    return-void
+.end method

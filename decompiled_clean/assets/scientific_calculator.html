@@ -1,0 +1,520 @@
+<html>
+<head>
+    <script type='text/javascript' src='file:///android_asset/jquery-1.11.0.min.js'></script>
+    <script type='text/javascript' src='file:///android_asset/calcijs.js'></script>
+    <script type="text/javascript">
+    function closePopup() {
+        AndroidInterface.closePopup();
+    }
+
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+            /**{
+                box-sizing: border-box; 
+                -webkit-box-sizing: border-box; 
+                -moz-box-sizing: border-box; 
+            }*/
+
+            body{
+                font-family: Arial;
+            }
+            .calc_close{
+                background: none repeat scroll 0 0 black;
+                border-radius: 50%;
+                color: #fff;
+                font-size: 12px !important;
+                font-weight: bold;
+                height: 25px;
+                line-height: 25px !important;
+                position: absolute;
+                right: -12px;
+                text-align: center;
+                top: -12px;
+                width: 25px;
+                cursor:pointer;
+            }
+            .calc_close:hover{
+                background:#c0392b;
+            }
+            .calc_container {
+                background: none repeat scroll 0 0 #dadada;
+                border: 1px solid #aaa;
+                border-radius: 5px;
+                box-shadow: 0 0 15px 0 rgba(0, 0, 0, 0.1) inset;
+                padding: 10px;
+                width: 300px;
+                border-bottom: 7px solid #999;
+                position:relative;
+            }
+
+            .left_sec{
+                float: left;
+                /*  margin-right: 10px; */
+            }
+            .right_sec{
+                float: left;
+                height:180px; 
+            }
+            /* KEY ROW */
+            .calc_row{
+                display: block;
+                overflow: hidden;
+                margin-bottom: 5px;
+            }
+
+
+            /* KEY BUTTONS */
+            #keyPad a {
+                background: #f1f1f1;
+                border-color: #aaa;
+                border-image: none;
+                border-radius: 4px;
+                border-style: solid;
+                border-width: 1px 1px 3px;
+                color: #444;
+                cursor: pointer;
+                /*  display: block; */
+                float: left;
+                font-size: 12px !important;
+                font-weight: bold;
+                height: 25px;
+                line-height: 20px !important;
+                margin-right: 5px;
+                text-align: center;
+                text-decoration: none;
+                vertical-align: middle;
+                width: 35px;
+            }
+            #keyPad a.min {
+                font-size: 10.5px !important;
+            }
+            #keyPad a span {
+                font-size: 10px !important;
+            }
+            #keyPad a.last {
+                margin-right: 0px;
+            }
+
+
+            #keyPad a:active {
+                position: relative;    
+                height: 25px;
+                border-bottom: 1px solid #aaa;
+            }
+            #keyPad_btnEnter:active  {
+                position:absolute !important;	
+                bottom:17px !important;  
+            }
+            #keyPad a:hover  {
+                background: #eaeaea;
+            }
+            .text_container {
+                display:inline;
+                /*  position: absolute; */
+            }
+            .memoryhide {
+                visibility: hidden;
+                position: absolute;
+                top: 52px;
+                right:429px;
+                bottom: 0;
+                opacity: 0;
+                transition: opacity 1s, visibility, 1s;
+            }
+            .memoryshow {
+                visibility: visible;
+                opacity: 1;
+            } 
+
+            /* INPUT/MEM TEXT BOXES*/
+            .keyPad_TextBox, .keyPad_TextBox1{
+                background: none repeat scroll 0 0 #fff;
+                border-color: #aaa;
+                border-image: none;
+                border-radius: 3px;
+                border-style: solid;
+                border-width: 1px 1px 3px;
+                font-size: 20px !important;
+                height: 30px;
+                line-height: 30px !important;
+                text-align: right;
+                text-indent: 10px;
+                vertical-align: middle;
+                width: 100%;
+                float: left;
+                margin-bottom: 7px;
+                padding-right:5px;	
+            }
+
+            .degree_radian{
+                float: left;
+                height: 25px;
+                width: 81px;
+                display: flex;
+                font-size:9px !important;
+                margin-top: 4px;
+                vertical-align: middle;
+            }
+
+            #keyPad_btnDot{
+                width:35px!important;
+            }
+            #keyPad_btn0{
+                width:76px!important;
+            }
+            /* ARROWS */
+            .calc_arrows{
+                font-size: 24px!important;
+                /*line-height: 29px!important;*/
+            }
+
+            /* ENTER a: QUAD WIDTH */
+            #keyPad #keyPad_btnEnter{
+                background: none repeat scroll 0 0 #2ecc71;
+                border-color: #27ae60;
+                bottom:17px;
+                color: #fff;
+                font-size: 20px !important;
+                line-height: 47px !important;
+                right:10px;
+                width: 35px;
+                height: 53px;
+                position:absolute;
+                /* LINE-HEIGHT: 65PX; */
+                FONT-SIZE: 20px !important;	
+            }
+
+            /* ZERO a: DOUBLE WIDTH  
+            #keyPad #keyPad_btn0{  
+                width: 95px;  
+            }*/
+
+            /* BACKSPACE/CLEAR INPUT KEYS*/
+
+            #keyPad #keyPad_btnClr,
+            #keyPad #keyPad_btnInverseSign,
+            #keyPad #keyPad_btnAllClr{
+                background: none repeat scroll 0 0 #e74c3c;
+                color: #fff;
+                border-color: #c0392b;
+                width:35px!important;
+
+            }
+            #keyPad #keyPad_btnBack
+            {
+                background: none repeat scroll 0 0 #e74c3c;
+                color: #fff;
+                border-color: #c0392b;
+                width:76px!important;
+            }	
+            /* SPECIAL FORMATTING FOR SUPER-SCRIPT KEYS */
+            #keyPad #keyPad_btnSquare,
+            #keyPad #keyPad_btnCube,
+            #keyPad #keyPad_btnExp,
+            #keyPad #keyPad_btnYpowX{ 
+                font-size: 12px !important;
+            }
+
+            /* CLEAR BOTH */
+            .clear {clear:both;}
+
+            .superscript,.subscript  {
+                font-size: 0.7em !important;
+                position: relative;
+                top: -0.5em;
+            }
+            .subscript {
+                top: 0.5em;
+            }
+
+
+            #calfootnote {
+                display: none;
+            }
+            #calinfoout {
+                background-color: #eee;
+                width: 100%
+            }
+            .calinfoinner {
+                /* border-color: #262626;
+                border-style: solid outset outset solid;
+                border-width: 1px 2px 2px 1px;
+                padding: 5px; */
+            }
+            #calinfoout #calInfoOutPut {
+                background-color: #b8c6a3;
+                color: #000;
+                cursor: text;
+                font-size: 18px;
+                padding: 3px;
+                text-align: right;
+                width: 233px;
+            }
+            #calinfoout .calinfonm {
+                background-color: #262626;
+                color: #fff;
+                font-weight: bold;
+            }
+            #calinfoout .calinfoop {
+                background-color: #ccc;
+                color: #262626;
+                font-weight: bold;
+            }
+            #calinfoout .calinfoeq {
+                background-color: #dcadb0;
+                color: #f00;
+                font-weight: bold;
+            }
+            #calinfoout .calinfofunc {
+                background-color: #c8d8e8;
+                color: #185290;
+                font-weight: bold;
+                height: 23px;
+                padding-bottom: 1px;
+            }
+            .degree_rad{
+                display:flex;
+            }
+            .degree_rad label{
+                align-self:center;
+            }
+.calinfoinner {
+                background: none repeat scroll 0 0 #dadada;
+                border: 1px solid #aaa;
+                border-radius: 5px;
+                position:relative;
+            }
+
+    </style>
+</head>
+<body>
+<div id="calc2" style="display: block; z-index: 1050;">
+    <td id="sciout">
+        <table align="center" cellpadding="10">
+            <tr>
+                <td>
+                    <div id="calinfoout" class="notranslate">
+                        <div class="calinfoinner">
+                            <img width="24" height="24"
+                                 src="https://img.icons8.com/emoji/48/cross-mark-button-emoji.png"
+                                 onclick="closePopup();"
+                                 style="cursor:pointer;display: inline;position: relative;padding-left: 300px;"></img>
+                            <!--  <label
+                            style="cursor:pointer;float:right;border:1px solid;padding-bottom:2px;font-weight:bold"
+                            id="movecalc">Move</label> -->
+                            <div id="keyPad" class="calc_container">
+                                <input type="text" id="keyPad_UserInput1" class="keyPad_TextBox1"
+                                       readonly="readonly"/>
+                                <div class="text_container">
+                                    <input type="text" id="keyPad_UserInput" class="keyPad_TextBox"
+                                           maxlength="30" readonly="readonly"/>
+                                    <span id="memory" class="memoryhide"><font size="2">M</span>
+                                </div>
+                                <div class="clear"></div>
+                                <div class="left_sec">
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_btnMod"
+                                           class="keyPad_btnBinaryOp">mod</a>
+                                        <div class="degree_radian">
+                                            <div class="degree_rad">
+                                                <input type="radio" name="degree_or_radian"
+                                                       id="degcalc" value="deg"
+                                                       checked="checked"></input>
+                                                <label for="degcalc">Deg</label>
+                                            </div>
+                                            <div class="degree_rad">
+                                                <input type="radio" name="degree_or_radian"
+                                                       id="radcalc" value="rad"></input>
+                                                <label for="radcalc">Rad</label>
+                                            </div>
+                                        </div>
+                                        <a href="#nogo" id="keyPad_btnPi" class="keyPad_btnConst"
+                                           style="visibility:hidden;">&#960;</a>
+                                        <a href="#nogo" id="keyPad_btnE" class="keyPad_btnConst"
+                                           style="visibility:hidden;">e</a>
+                                        <a href="#nogo" id="keyPad_btnE" class="keyPad_btnConst"
+                                           style="visibility:hidden;">e</a>
+
+                                    </div>
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_MC"
+                                           class="keyPad_btnMemoryOp">MC</a>
+                                        <a href="#nogo" id="keyPad_MR"
+                                           class="keyPad_btnMemoryOp">MR</a>
+                                        <a href="#nogo" id="keyPad_MS"
+                                           class="keyPad_btnMemoryOp">MS</a>
+                                        <a href="#nogo" id="keyPad_M+"
+                                           class="keyPad_btnMemoryOp">M+</a>
+                                        <a href="#nogo" id="keyPad_M-"
+                                           class="keyPad_btnMemoryOp">M-</a>
+                                    </div>
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_btnBack"
+                                           class="keyPad_btnCommand calc_arrows">
+                                            <div style="position: relative; top: -3px">&#8592;</div>
+                                        </a>
+                                        <a href="#nogo" id="keyPad_btnAllClr"
+                                           class="keyPad_btnCommand">C</a>
+                                        <a href="#nogo" id="keyPad_btnInverseSign"
+                                           class="keyPad_btnUnaryOp">+/-</a>
+                                        <a href="#nogo" id="keyPad_btnSquareRoot"
+                                           class="keyPad_btnUnaryOp">
+                                            <div style="position: relative; top: 1px">&#8730;</div>
+                                        </a>
+                                        <a href="#nogo" id="keyPad_btnOpen"
+                                           class="keyPad_btnBinaryOp ">(</a>
+                                        <a href="#nogo" id="keyPad_btnClose"
+                                           class="keyPad_btnBinaryOp ">)</a>
+                                    </div>
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_btn7"
+                                           class="keyPad_btnNumeric">7</a>
+                                        <a href="#nogo" id="keyPad_btn8"
+                                           class="keyPad_btnNumeric">8</a>
+                                        <a href="#nogo" id="keyPad_btn9" class="keyPad_btnNumeric ">9</a>
+                                        <a href="#nogo" id="keyPad_btnDiv"
+                                           class="keyPad_btnBinaryOp">/</a>
+                                        <a href="#nogo" id="keyPad_per"
+                                           class="keyPad_btnBinaryOp">%</a>
+                                        <a href="#nogo" id="keyPad_btn10X"
+                                           class="keyPad_btnUnaryOp"><span class='baseele'>10</span><span
+                                                class='superscript'>x</span></a>
+                                        <a href="#nogo" id="keyPad_btnInverse"
+                                           class="keyPad_btnUnaryOp"><span
+                                                class='baseele'>1/x</span></a>
+                                    </div>
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_btn4"
+                                           class="keyPad_btnNumeric">4</a>
+                                        <a href="#nogo" id="keyPad_btn5"
+                                           class="keyPad_btnNumeric">5</a>
+                                        <a href="#nogo" id="keyPad_btn6" class="keyPad_btnNumeric ">6</a>
+                                        <a href="#nogo" id="keyPad_btnMult"
+                                           class="keyPad_btnBinaryOp">
+                                            <div style="position: relative; top: 3px; font-size: 20px">
+                                                *
+                                            </div>
+                                        </a>
+                                        <a href="#nogo" id="keyPad_btnCube"
+                                           class="keyPad_btnUnaryOp"><span
+                                                class='baseele'>x</span><span
+                                                class='superscript'>3</span></a>
+                                        <a href="#nogo" id="keyPad_btnSquare"
+                                           class="keyPad_btnUnaryOp"><span
+                                                class='baseele'>x</span><span
+                                                class='superscript'>2</span></a>
+                                        <a href="#nogo" id="keyPad_btnE"
+                                           class="keyPad_btnConst">e</a>
+                                    </div>
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_btn1"
+                                           class="keyPad_btnNumeric">1</a>
+                                        <a href="#nogo" id="keyPad_btn2"
+                                           class="keyPad_btnNumeric">2</a>
+                                        <a href="#nogo" id="keyPad_btn3"
+                                           class="keyPad_btnNumeric">3</a>
+                                        <a href="#nogo" id="keyPad_btnMinus"
+                                           class="keyPad_btnBinaryOp">
+                                            <div style="position: relative; top: -1px; font-size: 20px">
+                                                -
+                                            </div>
+                                        </a>
+                                        <a href="#nogo" id="keyPad_btnCubeRoot"
+                                           class="keyPad_btnUnaryOp"><font size="3">&#8731; </font></a>
+                                        <a href="#nogo" id="keyPad_btnAbs"
+                                           class="keyPad_btnUnaryOp"><span
+                                                class='baseele'>|x|</span></a>
+                                        <a href="#nogo" id="keyPad_btnExp"
+                                           class="keyPad_btnUnaryOp"><span
+                                                class='baseele'>e</span><span
+                                                class='superscript'>x</span></a>
+                                    </div>
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_btn0"
+                                           class="keyPad_btnNumeric">0</a>
+                                        <a href="#nogo" id="keyPad_btnDot"
+                                           class="keyPad_btnNumeric ">.</a>
+                                        <a href="#nogo" id="keyPad_btnPlus"
+                                           class="keyPad_btnBinaryOp">+</a>
+                                        <a href="#nogo" id="keyPad_btnPi" class="keyPad_btnConst">&#960;</a>
+                                        <a href="#nogo" id="keyPad_btnYpowX"
+                                           class="keyPad_btnBinaryOp"><span class='baseele'>x</span><span
+                                                class='superscript'>y</span></a>
+                                        <a href="#nogo" id="keyPad_btnYrootX"
+                                           class="keyPad_btnBinaryOp"><span class='superscript'
+                                                                            style='top: -8px;'>y</span><span
+                                                class='baseele'
+                                                style='font-size: 1.2em; margin: -6px 0 0 -9px;'>&#8730;x</span></a>
+                                    </div>
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_btnSin"
+                                           class="keyPad_btnUnaryOp min ">sin</a>
+                                        <a href="#nogo" id="keyPad_btnCosin"
+                                           class="keyPad_btnUnaryOp min">cos</a>
+                                        <a href="#nogo" id="keyPad_btnTg"
+                                           class="keyPad_btnUnaryOp min">tan</a>
+                                        <a href="#nogo" id="keyPad_btnFact"
+                                           class="keyPad_btnUnaryOp">n!</a>
+                                        <a href="#nogo" id="keyPad_btnLogBase2"
+                                           class="keyPad_btnUnaryOp"><span
+                                                class='baseele'>log</span><span
+                                                class='subscript'>2</span><span
+                                                class='baseele'>x</span></a>
+                                        <a href="#nogo" id="keyPad_btnLn" class="keyPad_btnUnaryOp">ln</a>
+                                        <a href="#nogo" id="keyPad_btnLg" class="keyPad_btnUnaryOp">log</a>
+                                    </div>
+                                    <div class="calc_row clear" style="margin-top: 5px;">
+                                        <a href="#nogo" id="keyPad_btnAsinH"
+                                           class="keyPad_btnUnaryOp min "><span
+                                                class='baseele'>sinh</span><span
+                                                class='superscript'>-1</span></a>
+                                        <a href="#nogo" id="keyPad_btnAcosH"
+                                           class="keyPad_btnUnaryOp min "><span
+                                                class='baseele'>cosh</span><span
+                                                class='superscript'>-1</span></a>
+                                        <a href="#nogo" id="keyPad_btnAtanH"
+                                           class="keyPad_btnUnaryOp min "><span
+                                                class='baseele'>tanh</span><span
+                                                class='superscript'>-1</span></a>
+                                        <a href="#nogo" id="keyPad_btnAsin"
+                                           class="keyPad_btnUnaryOp min"><span
+                                                class='baseele'>sin</span><span class='superscript'>-1</span></a>
+                                        <a href="#nogo" id="keyPad_btnAcos"
+                                           class="keyPad_btnUnaryOp min"><span
+                                                class='baseele'>cos</span><span class='superscript'>-1</span></a>
+                                        <a href="#nogo" id="keyPad_btnAtan"
+                                           class="keyPad_btnUnaryOp min"><span
+                                                class='baseele'>tan</span><span class='superscript'>-1</span></a>
+
+                                    </div>
+                                    <div class="calc_row clear">
+                                        <a href="#nogo" id="keyPad_btnSinH"
+                                           class="keyPad_btnUnaryOp min">sinh</a>
+                                        <a href="#nogo" id="keyPad_btnCosinH"
+                                           class="keyPad_btnUnaryOp min">cosh</a>
+                                        <a href="#nogo" id="keyPad_btnTgH"
+                                           class="keyPad_btnUnaryOp min">tanh</a>
+                                        <a href="#nogo" id="keyPad_EXP" class="keyPad_btnBinaryOp">Exp</a>
+                                        <a href="#nogo" id="keyPad_btnYlogX"
+                                           class="keyPad_btnBinaryOp "><span
+                                                class='baseele'>log</span><span
+                                                class='subscript'>y</span><span
+                                                class='baseele'>x</span></a>
+                                        <a href="#nogo" id="keyPad_btnEnter"
+                                           class="keyPad_btnCommand ">
+                                            <div style="margin-bottom: 2px;">=</div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </td>
+</div>
+</body>
+</html>

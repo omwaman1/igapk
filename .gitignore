@@ -1,0 +1,20 @@
+# Build outputs
+*.apk
+*.idsig
+build_log.txt
+
+# Decompiled with full resources (has @null issues, not used for builds)
+decompiled/
+
+# Fresh decompile (unused)
+decompiled_fresh/
+
+# JADX output (large, can be regenerated)
+jadx_output/
+
+# Tools (large JARs)
+tools/
+
+# Crash logs
+crash*.txt
+newcrash.txt
