@@ -152,9 +152,10 @@
     .line 60
     iget-object v4, p0, Lcom/appx/core/activity/e2;->b:Lcom/appx/core/activity/ExoActivity;
 
+    # MODIFIED: Always go to normal playback (skip USB charger check)
     .line 61
     .line 62
-    if-ne p1, p2, :cond_2
+    goto :cond_2
 
     .line 63
     .line 64

@@ -790,6 +790,11 @@
 .method private decryptFile()V
     .locals 4
 
+    # DEBUG: log that decryptFile is being called
+    const-string v0, "IGNITE_DEBUG"
+    const-string v1, "decryptFile() called — running XOR decrypt"
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
     .line 1
     iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
 
@@ -964,178 +969,13 @@
 .end method
 
 .method private encryptFile()V
-    .locals 4
+    .locals 2
 
-    .line 1
-    iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
+    # MODIFIED: Skip encryption — keep files as plain MP4
+    const-string v0, "IGNITE_DEBUG"
+    const-string v1, "encryptFile() called in onPause — SKIPPED (disabled)"
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 
-    .line 2
-    .line 3
-    iget-object v1, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 4
-    .line 5
-    invoke-virtual {v1}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
-
-    .line 6
-    .line 7
-    .line 8
-    move-result-object v1
-
-    .line 9
-    const-string v2, "VIDEO_DOWNLOAD_LIST"
-
-    .line 10
-    .line 11
-    invoke-virtual {v0, v1, v2}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->getDownloadModel(Ljava/lang/String;Ljava/lang/String;)Lcom/appx/core/model/NewDownloadModel;
-
-    .line 12
-    .line 13
-    .line 14
-    move-result-object v0
-
-    .line 15
-    iget-object v1, p0, Lcom/appx/core/activity/CustomAppCompatActivity;->loginManager:Lcom/appx/core/utils/q0;
-
-    .line 16
-    .line 17
-    invoke-virtual {v1}, Lcom/appx/core/utils/q0;->j()Z
-
-    .line 18
-    .line 19
-    .line 20
-    move-result v1
-
-    .line 21
-    if-nez v1, :cond_0
-
-    .line 22
-    .line 23
-    if-eqz v0, :cond_0
-
-    .line 24
-    .line 25
-    invoke-virtual {v0}, Lcom/appx/core/model/NewDownloadModel;->getEncryption()Ljava/lang/String;
-
-    .line 26
-    .line 27
-    .line 28
-    move-result-object v0
-
-    .line 29
-    const-string v1, "0"
-
-    .line 30
-    .line 31
-    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-
-    .line 32
-    .line 33
-    .line 34
-    move-result v0
-
-    .line 35
-    if-eqz v0, :cond_0
-
-    .line 36
-    .line 37
-    iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 38
-    .line 39
-    invoke-virtual {v0}, Lcom/appx/core/model/NewDownloadModel;->getKey()Ljava/lang/String;
-
-    .line 40
-    .line 41
-    .line 42
-    move-result-object v0
-
-    .line 43
-    invoke-virtual {v0}, Ljava/lang/String;->length()I
-
-    .line 44
-    .line 45
-    .line 46
-    move-result v0
-
-    .line 47
-    const/16 v1, 0x14
-
-    .line 48
-    .line 49
-    if-ge v0, v1, :cond_0
-
-    .line 50
-    .line 51
-    invoke-static {}, Lcs/a;->b()V
-
-    .line 52
-    .line 53
-    .line 54
-    iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->fileEnDecryptManager:Lcom/appx/core/utils/m0;
-
-    .line 55
-    .line 56
-    iget-object v1, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 57
-    .line 58
-    invoke-virtual {v1}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
-
-    .line 59
-    .line 60
-    .line 61
-    move-result-object v1
-
-    .line 62
-    iget-object v3, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 63
-    .line 64
-    invoke-virtual {v3}, Lcom/appx/core/model/NewDownloadModel;->getKey()Ljava/lang/String;
-
-    .line 65
-    .line 66
-    .line 67
-    move-result-object v3
-
-    .line 68
-    invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
-
-    .line 69
-    .line 70
-    .line 71
-    invoke-static {v1, v3}, Lcom/appx/core/utils/m0;->d(Ljava/lang/String;Ljava/lang/String;)Z
-
-    .line 72
-    .line 73
-    .line 74
-    iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
-
-    .line 75
-    .line 76
-    iget-object v1, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 77
-    .line 78
-    invoke-virtual {v1}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
-
-    .line 79
-    .line 80
-    .line 81
-    move-result-object v1
-
-    .line 82
-    const-string v3, "1"
-
-    .line 83
-    .line 84
-    invoke-virtual {v0, v1, v2, v3}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->setEncryptionValue(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-
-    .line 85
-    .line 86
-    .line 87
-    :cond_0
     return-void
 .end method
 
