@@ -55,59 +55,36 @@ adb install-multiple --no-incremental ignite247_aligned.apk split_config.arm64_v
 
 ## What's Been Done
 
-### ✅ Storage Path → Public Downloads
-**File**: `decompiled_nores/smali/com/appx/core/utils/c0.smali` (method `n0`)  
-Changed from `context.getExternalFilesDir(null) + "/ig"` to `Environment.getExternalStoragePublicDirectory("Download") + "/Ignite247"`.  
-Videos now save to `Downloads/Ignite247/` instead of hidden app storage.
+### ✅ Storage Path & File Extension Fix
+**File**: `decompiled_nores/smali/com/appx/core/utils/c0.smali` (`n0` & `h0`)
+- **Fix**: Saved to `Downloads/Ignite247/` and logic modified to always append `.mp4` regardless of `isGuest` status. 
 
-### ✅ AndroidManifest.xml Fixes
-- Removed `requiredSplitTypes` and `splitTypes` attributes
-- Set `com.android.vending.splits.required` to `false`
-- Fixed `@null` resource reference in notification icon meta-data
-- Added `android:requestLegacyExternalStorage="true"`
+### ✅ USB Charging Dialog Bypass
+**File**: `decompiled_nores/smali/com/appx/core/activity/e2.smali`
+- **Fix**: Bypassed the USB charging check that blocked video playback when plugged into a USB port. Changed `if-ne` branch to always `goto`.
 
-### ✅ Streaming Crash Fix
-**File**: `decompiled/res/values/drawables.xml`  
-ExoPlayer drawables were set to `@null` (split APK artifact).  
-**Workaround**: Build from `decompiled_nores` instead, which keeps original compiled resources intact.
+### ✅ ExoActivity XOR Decryption Restoration (For Old Files)
+**File**: `decompiled_nores/smali/com/appx/core/activity/ExoActivity.smali`
+- **Fix**: Retained `decryptFile()` on playback to allow already-downloaded XOR-encrypted videos to decrypt on first play. Stubbed `encryptFile()` within `onPause` to prevent any MP4 from being re-encrypted when exiting the player.
 
-## What Remains
-
-### ❌ File Extension Fix
-**File**: `decompiled_nores/smali/com/appx/core/utils/c0.smali` (method `h0`)  
-**Problem**: `h0(context, isGuest)` only appends `.mp4` when `isGuest=true`. Logged-in users get extensionless files like `1709671234`.  
-**Fix**: Modify `h0()` to always append `.mp4` regardless of the `isGuest` parameter.
-
-### ❌ Disable Encryption
-**Files**: 
-- `decompiled_nores/smali/com/appx/core/fragment/NewDownloadVideoFragment.smali`
-- `decompiled_nores/smali/com/appx/core/fragment/NewDownloadPdfFragment.smali`
-
-**Problem**: `encryptFile()` XOR-encrypts first 28 bytes of downloaded files for logged-in users.  
-**Fix**: Stub `encryptFile()` to just `return-void` — skip encryption entirely so files are saved as plain playable MP4s.
+### ✅ In-Place AES Decryption at Download (For New Files)
+**File**: `decompiled_nores/smali/com/appx/core/fragment/NewDownloadVideoFragment.smali`
+- **Fix**: Intercepted the download completion callback `encryptFile()` to check the video's AES key length. If the key is >= 20 chars, it natively calls `b0.h(key, file, true)` to decrypt the AES-encrypted data immediately. If key < 20 (already plain MP4), it skips XOR logic. Then it sets `encryption=0` in SharedPreferences. Result: All downloaded videos are permanently stored as standard `.mp4` files immediately.
 
 ## Key Architecture Notes
 
-### Encryption Flow
-1. Server sends video content (may be pre-encrypted)
-2. `encryptFile()` called after download completes
-3. Checks `loginManager.j()` — if guest, skips; if logged in, XOR-encrypts
-4. XOR key: `"abcdefg"`, applied to first 28 bytes via `m0.f(path, key)`
-5. `setEncryptFile()` marks model `encryption = "1"` in SharedPreferences
-6. On playback, `ExoActivity` checks encryption flag and XOR-decrypts if needed
-
-### File Path Generation
-```
-c0.n0(context)  → base dir (e.g. Downloads/Ignite247)
-c0.h0(context, isGuest) → base + "/" + timestamp [+ ".mp4" only if guest]
-```
+### Two Layers of App Encryption
+1. **Server AES Encryption**: Videos containing high-value content send down AES/CBC encrypted bytes directly to the client alongside a key >= 20 chars long.
+   - Handled via: Native `b0.h()` decryption in our new download modification.
+2. **App Local XOR Encryption**: For standard videos (key < 20 chars), the server sends a plain MP4. The app normally XOR encrypts the first 28 bytes (`abcdefg`) using `m0.f` logic via `encryptFile`.
+   - Handled via: Skips XOR encryption altogether with our modifications; saves unmodified mp4.
 
 ### Key Files
 | File | Purpose |
 |------|---------|
 | `c0.smali` | Storage paths (`n0`, `h0`), utility methods |
 | `m0.smali` | XOR encryption/decryption (`e`, `f` methods) |
-| `NewDownloadVideoFragment.smali` | `encryptFile()` for videos |
-| `NewDownloadPdfFragment.smali` | `encryptFile()` for PDFs |
-| `ExoActivity.smali` | Video playback, decryption on play |
-| `NewDownloadModel.java` | Data model with `encryption`, `savedPath` fields |
+| `b0.smali` | AES/CBC decryption (`h` method) |
+| `NewDownloadVideoFragment.smali` | Video download callbacks, in-place AES decryption mod |
+| `ExoActivity.smali` | Video playback, re-encryption prevention mod |
+| `e2.smali` | USB plugged-in detection broadcast receiver |
