@@ -788,183 +788,104 @@
 .end method
 
 .method private decryptFile()V
-    .locals 4
+    .locals 8
 
-    # DEBUG: log that decryptFile is being called
-    const-string v0, "IGNITE_DEBUG"
-    const-string v1, "decryptFile() called — running XOR decrypt"
-    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
-
-    .line 1
-    iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
-
-    .line 2
-    .line 3
-    iget-object v1, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 4
-    .line 5
-    invoke-virtual {v1}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
-
-    .line 6
-    .line 7
-    .line 8
-    move-result-object v1
-
-    .line 9
-    const-string v2, "VIDEO_DOWNLOAD_LIST"
-
-    .line 10
-    .line 11
-    invoke-virtual {v0, v1, v2}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->getDownloadModel(Ljava/lang/String;Ljava/lang/String;)Lcom/appx/core/model/NewDownloadModel;
-
-    .line 12
-    .line 13
-    .line 14
-    move-result-object v0
-
-    .line 15
-    iget-object v1, p0, Lcom/appx/core/activity/CustomAppCompatActivity;->loginManager:Lcom/appx/core/utils/q0;
-
-    .line 16
-    .line 17
-    invoke-virtual {v1}, Lcom/appx/core/utils/q0;->j()Z
-
-    .line 18
-    .line 19
-    .line 20
-    move-result v1
-
-    .line 21
-    if-nez v1, :cond_0
-
-    .line 22
-    .line 23
-    if-eqz v0, :cond_0
-
-    .line 24
-    .line 25
-    invoke-virtual {v0}, Lcom/appx/core/model/NewDownloadModel;->getEncryption()Ljava/lang/String;
-
-    .line 26
-    .line 27
-    .line 28
-    move-result-object v0
-
-    .line 29
-    const-string v1, "1"
-
-    .line 30
-    .line 31
-    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-
-    .line 32
-    .line 33
-    .line 34
-    move-result v0
-
-    .line 35
-    if-eqz v0, :cond_0
-
-    .line 36
-    .line 37
-    invoke-static {}, Lcs/a;->b()V
-
-    .line 38
-    .line 39
-    .line 40
+    :try_start_0
     iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
+    if-eqz v0, :cond_done
 
-    .line 41
-    .line 42
+    invoke-virtual {v0}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
+    move-result-object v1
     invoke-virtual {v0}, Lcom/appx/core/model/NewDownloadModel;->getKey()Ljava/lang/String;
+    move-result-object v2
 
-    .line 43
-    .line 44
-    .line 45
+    if-eqz v1, :cond_done
+    if-eqz v2, :cond_done
+
+    new-instance v3, Ljava/io/File;
+    invoke-direct {v3, v1}, Ljava/io/File;-><init>(Ljava/lang/String;)V
+    invoke-virtual {v3}, Ljava/io/File;->exists()Z
+    move-result v4
+    if-nez v4, :cond_exists
+    goto :cond_done
+
+    :cond_exists
+    new-instance v4, Ljava/io/FileInputStream;
+    invoke-direct {v4, v3}, Ljava/io/FileInputStream;-><init>(Ljava/io/File;)V
+    const/16 v5, 0x8
+    new-array v6, v5, [B
+    invoke-virtual {v4, v6}, Ljava/io/FileInputStream;->read([B)I
+    invoke-virtual {v4}, Ljava/io/FileInputStream;->close()V
+
+    # Check 1: MP4 ftyp header at bytes 4-7 (0x66 0x74 0x79 0x70)
+    const/4 v4, 0x4
+    aget-byte v4, v6, v4
+    const/16 v5, 0x66
+    if-ne v4, v5, :cond_check_ebml
+    const/4 v4, 0x5
+    aget-byte v4, v6, v4
+    const/16 v5, 0x74
+    if-ne v4, v5, :cond_check_ebml
+    const/4 v4, 0x6
+    aget-byte v4, v6, v4
+    const/16 v5, 0x79
+    if-ne v4, v5, :cond_check_ebml
+    const/4 v4, 0x7
+    aget-byte v4, v6, v4
+    const/16 v5, 0x70
+    if-ne v4, v5, :cond_check_ebml
+    const-string v4, "IGNITE_DEBUG"
+    const-string v5, "decryptFile: file already decrypted (has ftyp)!"
+    invoke-static {v4, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    goto :cond_done
+
+    # Check 2: MKV/WebM EBML header at bytes 0-3 (0x1a 0x45 0xdf 0xa3)
+    :cond_check_ebml
+    const/4 v4, 0x0
+    aget-byte v4, v6, v4
+    const/16 v5, 0x1a
+    if-ne v4, v5, :cond_needs_decrypt
+    const/4 v4, 0x1
+    aget-byte v4, v6, v4
+    const/16 v5, 0x45
+    if-ne v4, v5, :cond_needs_decrypt
+    const/4 v4, 0x2
+    aget-byte v4, v6, v4
+    const/16 v5, -0x21
+    if-ne v4, v5, :cond_needs_decrypt
+    const/4 v4, 0x3
+    aget-byte v4, v6, v4
+    const/16 v5, -0x5d
+    if-ne v4, v5, :cond_needs_decrypt
+    const-string v4, "IGNITE_DEBUG"
+    const-string v5, "decryptFile: file already decrypted (has EBML/MKV)!"
+    invoke-static {v4, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    goto :cond_done
+
+    :cond_needs_decrypt
+    const-string v4, "IGNITE_DEBUG"
+    const-string v5, "decryptFile: decrypting missing ftyp"
+    invoke-static {v4, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    invoke-static {v1, v2}, Lcom/appx/core/utils/m0;->b(Ljava/lang/String;Ljava/lang/String;)Z
+
+    :cond_done
+    :try_end_0
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0
+    return-void
+
+    :catch_0
+    move-exception v0
+    const-string v1, "IGNITE_DEBUG"
+    new-instance v2, Ljava/lang/StringBuilder;
+    const-string v3, "decryptFile ERROR: "
+    invoke-direct {v2, v3}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+    invoke-virtual {v0}, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;
     move-result-object v0
-
-    .line 46
-    invoke-virtual {v0}, Ljava/lang/String;->length()I
-
-    .line 47
-    .line 48
-    .line 49
-    move-result v0
-
-    .line 50
-    const/16 v1, 0x14
-
-    .line 51
-    .line 52
-    if-ge v0, v1, :cond_0
-
-    .line 53
-    .line 54
-    iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->fileEnDecryptManager:Lcom/appx/core/utils/m0;
-
-    .line 55
-    .line 56
-    iget-object v1, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 57
-    .line 58
-    invoke-virtual {v1}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
-
-    .line 59
-    .line 60
-    .line 61
-    move-result-object v1
-
-    .line 62
-    iget-object v3, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 63
-    .line 64
-    invoke-virtual {v3}, Lcom/appx/core/model/NewDownloadModel;->getKey()Ljava/lang/String;
-
-    .line 65
-    .line 66
-    .line 67
-    move-result-object v3
-
-    .line 68
-    invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
-
-    .line 69
-    .line 70
-    .line 71
-    invoke-static {v1, v3}, Lcom/appx/core/utils/m0;->b(Ljava/lang/String;Ljava/lang/String;)Z
-
-    .line 72
-    .line 73
-    .line 74
-    iget-object v0, p0, Lcom/appx/core/activity/ExoActivity;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
-
-    .line 75
-    .line 76
-    iget-object v1, p0, Lcom/appx/core/activity/ExoActivity;->selectedModel:Lcom/appx/core/model/NewDownloadModel;
-
-    .line 77
-    .line 78
-    invoke-virtual {v1}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
-
-    .line 79
-    .line 80
-    .line 81
-    move-result-object v1
-
-    .line 82
-    const-string v3, "0"
-
-    .line 83
-    .line 84
-    invoke-virtual {v0, v1, v2, v3}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->setEncryptionValue(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-
-    .line 85
-    .line 86
-    .line 87
-    :cond_0
+    invoke-virtual {v2, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v0
+    invoke-static {v1, v0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
     return-void
 .end method
 

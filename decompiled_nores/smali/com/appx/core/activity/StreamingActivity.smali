@@ -11979,19 +11979,10 @@
 
     .line 37
     .line 38
-    iget-object v9, v1, Lcom/appx/core/activity/CustomAppCompatActivity;->loginManager:Lcom/appx/core/utils/q0;
-
-    .line 39
-    .line 40
-    invoke-virtual {v9}, Lcom/appx/core/utils/q0;->j()Z
-
-    .line 41
-    .line 42
-    .line 43
-    move-result v9
-
-    .line 44
-    invoke-static {v1, v9}, Lcom/appx/core/utils/c0;->h0(Landroid/content/Context;Z)Ljava/lang/String;
+    # MODIFIED: Build path as courseName/title.mp4
+    invoke-virtual {v0}, Lcom/appx/core/model/CourseModel;->getCourseName()Ljava/lang/String;
+    move-result-object v9
+    invoke-static {v1, v9, v7}, Lcom/appx/core/utils/RenameHelper;->buildVideoPath(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 
     .line 45
     .line 46
@@ -12419,21 +12410,10 @@
     :try_start_a
     iget-object v5, v1, Lcom/appx/core/activity/StreamingActivity;->youtubeLink:Ljava/lang/String;
 
-    .line 229
-    .line 230
-    iget-object v7, v1, Lcom/appx/core/activity/CustomAppCompatActivity;->loginManager:Lcom/appx/core/utils/q0;
-
-    .line 231
-    .line 232
-    invoke-virtual {v7}, Lcom/appx/core/utils/q0;->j()Z
-
-    .line 233
-    .line 234
-    .line 235
-    move-result v7
-
-    .line 236
-    invoke-static {v1, v7}, Lcom/appx/core/utils/c0;->h0(Landroid/content/Context;Z)Ljava/lang/String;
+    # MODIFIED: Build path as courseName/title.mp4
+    invoke-virtual/range {v18 .. v18}, Lcom/appx/core/model/CourseModel;->getCourseName()Ljava/lang/String;
+    move-result-object v7
+    invoke-static {v1, v7, v4}, Lcom/appx/core/utils/RenameHelper;->buildVideoPath(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 
     .line 237
     .line 238
@@ -12641,25 +12621,13 @@
     .line 334
     iget-object v5, v1, Lcom/appx/core/activity/StreamingActivity;->youtubeLink:Ljava/lang/String;
 
-    .line 335
-    .line 336
-    iget-object v7, v1, Lcom/appx/core/activity/CustomAppCompatActivity;->loginManager:Lcom/appx/core/utils/q0;
-
-    .line 337
-    .line 338
-    invoke-virtual {v7}, Lcom/appx/core/utils/q0;->j()Z
-
-    .line 339
-    .line 340
-    .line 341
-    move-result v7
-
-    .line 342
-    invoke-static {v1, v7}, Lcom/appx/core/utils/c0;->h0(Landroid/content/Context;Z)Ljava/lang/String;
-
-    .line 343
-    .line 344
-    .line 345
+    # MODIFIED: Build path as courseName/title.mp4
+    iget-object v7, v1, Lcom/appx/core/activity/StreamingActivity;->courseViewModel:Lcom/appx/core/viewmodel/CourseViewModel;
+    invoke-virtual {v7}, Lcom/appx/core/viewmodel/CourseViewModel;->getSelectedCourseModel()Lcom/appx/core/model/CourseModel;
+    move-result-object v7
+    invoke-virtual {v7}, Lcom/appx/core/model/CourseModel;->getCourseName()Ljava/lang/String;
+    move-result-object v7
+    invoke-static {v1, v7, v0}, Lcom/appx/core/utils/RenameHelper;->buildVideoPath(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
     move-result-object v7
 
     .line 346

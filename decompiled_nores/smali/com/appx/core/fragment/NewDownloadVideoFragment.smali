@@ -2159,7 +2159,7 @@
     .line 28
     invoke-virtual {p0}, Lcom/appx/core/fragment/NewDownloadVideoFragment;->setLayout()V
 
-    # MODIFIED: Auto-decrypt all videos when download tab opens
+    # RESTORED: decryptAllVideos trigger so videos decrypt when opening Downloads tab
     invoke-virtual {p0}, Lcom/appx/core/fragment/NewDownloadVideoFragment;->decryptAllVideos()V
 
     return-void
@@ -2266,30 +2266,55 @@
     invoke-virtual {v5, v8}, Ljava/io/FileInputStream;->read([B)I
     invoke-virtual {v5}, Ljava/io/FileInputStream;->close()V
 
-    # Check bytes 4-7 for 'f','t','y','p'
+    # Check bytes 4-7 for 'f','t','y','p' (MP4)
     const/4 v5, 0x4
     aget-byte v5, v8, v5    # byte[4]
     const/16 v0, 0x66       # 'f'
-    if-ne v5, v0, :cond_needs_xor
+    if-ne v5, v0, :cond_check_ebml
 
     const/4 v5, 0x5
     aget-byte v5, v8, v5    # byte[5]
     const/16 v0, 0x74       # 't'
-    if-ne v5, v0, :cond_needs_xor
+    if-ne v5, v0, :cond_check_ebml
 
     const/4 v5, 0x6
     aget-byte v5, v8, v5    # byte[6]
     const/16 v0, 0x79       # 'y'
-    if-ne v5, v0, :cond_needs_xor
+    if-ne v5, v0, :cond_check_ebml
 
     const/4 v5, 0x7
     aget-byte v5, v8, v5    # byte[7]
     const/16 v0, 0x70       # 'p'
-    if-ne v5, v0, :cond_needs_xor
+    if-ne v5, v0, :cond_check_ebml
 
     # File IS a valid MP4 — already decrypted, skip
     const-string v0, "IGNITE_DEBUG"
     const-string v5, "  -> SKIP: file already has ftyp header (plain MP4)"
+    invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    goto :cond_mark_done
+
+    # Check bytes 0-3 for EBML header 0x1a 0x45 0xdf 0xa3 (MKV/WebM)
+    :cond_check_ebml
+    const/4 v5, 0x0
+    aget-byte v5, v8, v5
+    const/16 v0, 0x1a
+    if-ne v5, v0, :cond_needs_xor
+    const/4 v5, 0x1
+    aget-byte v5, v8, v5
+    const/16 v0, 0x45
+    if-ne v5, v0, :cond_needs_xor
+    const/4 v5, 0x2
+    aget-byte v5, v8, v5
+    const/16 v0, -0x21
+    if-ne v5, v0, :cond_needs_xor
+    const/4 v5, 0x3
+    aget-byte v5, v8, v5
+    const/16 v0, -0x5d
+    if-ne v5, v0, :cond_needs_xor
+
+    # File IS a valid MKV/WebM — already decrypted, skip
+    const-string v0, "IGNITE_DEBUG"
+    const-string v5, "  -> SKIP: file already has EBML header (MKV/WebM)"
     invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
     goto :cond_mark_done
     :try_end_header

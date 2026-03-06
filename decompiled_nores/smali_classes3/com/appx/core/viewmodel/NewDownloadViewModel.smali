@@ -1076,7 +1076,12 @@
 .end method
 
 .method public setEncryptionValue(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-    .locals 4
+    .locals 5
+
+    # DIAGNOSTIC: log entry to verify method is callable with .locals 5
+    const-string v4, "IGNITE_DEBUG"
+    const-string v3, "setEncryptionValue() ENTERED"
+    invoke-static {v4, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 
     .line 1
     invoke-virtual {p0, p2}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->getNewDownloadModelList(Ljava/lang/String;)Ljava/util/ArrayList;
@@ -1155,6 +1160,17 @@
     .line 38
     .line 39
     invoke-virtual {v2, p3}, Lcom/appx/core/model/NewDownloadModel;->setEncryption(Ljava/lang/String;)V
+
+    # Decrypt + rename when encryption is set to "0"
+    const-string v3, "0"
+    invoke-virtual {p3, v3}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v3
+    if-eqz v3, :cond_skip_rename
+
+    # Call RenameHelper to decrypt and rename the file
+    invoke-static {v2, p0, p2}, Lcom/appx/core/utils/RenameHelper;->decryptAndRename(Lcom/appx/core/model/NewDownloadModel;Lcom/appx/core/viewmodel/NewDownloadViewModel;Ljava/lang/String;)V
+
+    :cond_skip_rename
 
     .line 40
     .line 41

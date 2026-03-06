@@ -17112,6 +17112,16 @@
 .method public static h0(Landroid/content/Context;Z)Ljava/lang/String;
     .locals 4
 
+    # DEBUG: trace who is calling h0()
+    const-string v0, "IGNITE_DEBUG"
+    const-string v1, "h0() CALLED — old timestamp path"
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    new-instance v0, Ljava/lang/Throwable;
+    invoke-direct {v0}, Ljava/lang/Throwable;-><init>()V
+    const-string v1, "IGNITE_DEBUG"
+    const-string v2, "h0() stack trace:"
+    invoke-static {v1, v2, v0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
     .line 1
     invoke-static {p0}, Lcom/appx/core/utils/c0;->n0(Landroid/content/Context;)Ljava/lang/String;
 
