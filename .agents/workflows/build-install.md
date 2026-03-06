@@ -7,10 +7,10 @@ description: Build, sign, and install modified Ignite247 APK via ADB
 ## Prerequisites
 
 Tools added to system PATH:
-- **zipalign, apksigner**: `C:\Users\Admin\AppData\Local\Android\Sdk\build-tools\36.1.0`
-- **jarsigner**: `C:\Program Files\Android\Android Studio\jbr\bin`
-- **adb**: `C:\Program Files\Netease\MuMuPlayer\nx_main`
-- **apktool**: `java -jar c:\Users\Admin\Desktop\temp\ignite_apk\tools\apktool.jar`
+- **zipalign, apksigner**: `C:\Users\Admin1\Desktop\ig\tools\sdk\build-tools\35.0.0`
+- **jarsigner**: `C:\Program Files\Microsoft\jdk-17.0.18.8-hotspot\bin`
+- **adb**: `C:\Users\Admin1\Desktop\ig\tools\sdk\platform-tools`
+- **apktool**: `java -jar C:\Users\Admin1\Desktop\ig\tools\apktool.jar`
 
 Split APKs (all in project root):
 - `split_config.arm64_v8a.apk`
@@ -71,6 +71,10 @@ adb install-multiple --no-incremental ignite247_aligned.apk split_config.arm64_v
 **File**: `decompiled_nores/smali/com/appx/core/fragment/NewDownloadVideoFragment.smali`
 - **Fix**: Intercepted the download completion callback `encryptFile()` to check the video's AES key length. If the key is >= 20 chars, it natively calls `b0.h(key, file, true)` to decrypt the AES-encrypted data immediately. If key < 20 (already plain MP4), it skips XOR logic. Then it sets `encryption=0` in SharedPreferences. Result: All downloaded videos are permanently stored as standard `.mp4` files immediately.
 
+### ✅ Adapter Encryption Gate Inversion (Download-Time Decrypt Trigger)
+**Files**: `decompiled_nores/smali/com/appx/core/adapter/sc.smali` (line 2647) & `mc.smali` (line 1325)
+- **Fix**: The adapters originally called `encryptFile()` only for `encryption=="0"` files (to encrypt plain files). Since we repurposed `encryptFile()` to *decrypt*, the callback was never fired for encrypted files (`encryption==1`). Inverted `if-eqz` → `if-nez` so the callback fires for encrypted files instead, enabling download-time decryption.
+
 ## Key Architecture Notes
 
 ### Two Layers of App Encryption
@@ -88,3 +92,5 @@ adb install-multiple --no-incremental ignite247_aligned.apk split_config.arm64_v
 | `NewDownloadVideoFragment.smali` | Video download callbacks, in-place AES decryption mod |
 | `ExoActivity.smali` | Video playback, re-encryption prevention mod |
 | `e2.smali` | USB plugged-in detection broadcast receiver |
+| `sc.smali` | Video download adapter — encryption gate fix |
+| `mc.smali` | PDF download adapter — encryption gate fix |

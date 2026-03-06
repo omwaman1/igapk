@@ -1040,73 +1040,13 @@
 .end method
 
 .method public encryptFile(Ltn/a;)V
-    .locals 6
+    .locals 2
 
-    # MODIFIED: Instead of XOR-encrypting, AES-decrypt in-place for key>=20 files
-    # For key<20 files the server sends plain MP4 — no decryption needed either way
+    # MODIFIED: No-op — decryption is handled by decryptAllVideos() in onResume
     const-string v0, "IGNITE_DEBUG"
-    const-string v1, "encryptFile() callback — checking if AES decrypt needed"
+    const-string v1, "encryptFile() callback — skipped (no-op)"
     invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 
-    # Cast param to un.f to access fields
-    check-cast p1, Lun/f;
-
-    # Get saved file path (f29565d)
-    iget-object v0, p1, Lun/f;->f29565d:Ljava/lang/String;
-
-    # Get the NewDownloadModel from ViewModel by savedPath
-    iget-object v1, p0, Lcom/appx/core/fragment/NewDownloadVideoFragment;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
-    const-string v2, "VIDEO_DOWNLOAD_LIST"
-    invoke-virtual {v1, v0, v2}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->getDownloadModel(Ljava/lang/String;Ljava/lang/String;)Lcom/appx/core/model/NewDownloadModel;
-    move-result-object v1
-
-    # If model is null, skip
-    if-eqz v1, :cond_done
-
-    # Get the key
-    invoke-virtual {v1}, Lcom/appx/core/model/NewDownloadModel;->getKey()Ljava/lang/String;
-    move-result-object v2
-
-    # If key is null, skip
-    if-eqz v2, :cond_mark_zero
-
-    # Check key length
-    invoke-virtual {v2}, Ljava/lang/String;->length()I
-    move-result v3
-
-    const/16 v4, 0x14    # 20
-
-    # If key length < 20, just mark as 0 (plain file, no decrypt needed)
-    if-lt v3, v4, :cond_mark_zero
-
-    # Key >= 20: AES-decrypt in-place using b0.h(key, new File(path), true)
-    const-string v3, "IGNITE_DEBUG"
-    const-string v4, "encryptFile: AES decrypting file in-place"
-    invoke-static {v3, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
-
-    new-instance v3, Ljava/io/File;
-    invoke-direct {v3, v0}, Ljava/io/File;-><init>(Ljava/lang/String;)V
-
-    const/4 v4, 0x1    # z5 = true (write back to file)
-
-    invoke-static {v2, v3, v4}, Lcom/appx/core/utils/b0;->h(Ljava/lang/String;Ljava/io/File;Z)[B
-
-    const-string v3, "IGNITE_DEBUG"
-    const-string v4, "encryptFile: AES decrypt done — file is now plain MP4"
-    invoke-static {v3, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
-
-    :cond_mark_zero
-    # Mark encryption=0 in DB so decryptFile() in ExoActivity is also a no-op
-    iget-object v3, p0, Lcom/appx/core/fragment/NewDownloadVideoFragment;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
-    const-string v4, "VIDEO_DOWNLOAD_LIST"
-    const-string v5, "0"
-    invoke-virtual {v3, v0, v4, v5}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->setEncryptionValue(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-
-    const-string v3, "IGNITE_DEBUG"
-    const-string v4, "encryptFile: marked encryption=0 in DB"
-    invoke-static {v3, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
-
-    :cond_done
     return-void
 .end method
 
@@ -1231,6 +1171,10 @@
     .line 11
     .line 12
     .line 13
+
+    # MODIFIED: Decrypt file immediately after successful download
+    invoke-virtual {p0, p2}, Lcom/appx/core/fragment/NewDownloadVideoFragment;->encryptFile(Ltn/a;)V
+
     return-void
 
     .line 14
@@ -2215,9 +2159,207 @@
     .line 28
     invoke-virtual {p0}, Lcom/appx/core/fragment/NewDownloadVideoFragment;->setLayout()V
 
-    .line 29
-    .line 30
-    .line 31
+    # MODIFIED: Auto-decrypt all videos when download tab opens
+    invoke-virtual {p0}, Lcom/appx/core/fragment/NewDownloadVideoFragment;->decryptAllVideos()V
+
+    return-void
+.end method
+
+.method public decryptAllVideos()V
+    .locals 9
+
+    const-string v0, "IGNITE_DEBUG"
+
+    const-string v1, "=== decryptAllVideos() START ==="
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    # Get viewModel
+    iget-object v1, p0, Lcom/appx/core/fragment/NewDownloadVideoFragment;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
+    if-nez v1, :cond_vm_ok
+    const-string v1, "ABORT: viewModel NULL"
+    invoke-static {v0, v1}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+    goto/16 :cond_done
+
+    :cond_vm_ok
+    const-string v2, "VIDEO_DOWNLOAD_LIST"
+    invoke-virtual {v1, v2}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->getNewDownloadModelList(Ljava/lang/String;)Ljava/util/ArrayList;
+    move-result-object v3
+    if-nez v3, :cond_list_ok
+    const-string v1, "ABORT: list NULL"
+    invoke-static {v0, v1}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+    goto/16 :cond_done
+
+    :cond_list_ok
+    invoke-virtual {v3}, Ljava/util/ArrayList;->size()I
+    move-result v4
+
+    # Log list size
+    new-instance v5, Ljava/lang/StringBuilder;
+    const-string v6, "Found "
+    invoke-direct {v5, v6}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+    invoke-virtual {v5, v4}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    const-string v6, " items"
+    invoke-virtual {v5, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v5}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v5
+    invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    if-gtz v4, :cond_has_items
+    goto/16 :cond_done
+
+    :cond_has_items
+    invoke-virtual {v3}, Ljava/util/ArrayList;->iterator()Ljava/util/Iterator;
+    move-result-object v3
+
+    :goto_loop
+    invoke-interface {v3}, Ljava/util/Iterator;->hasNext()Z
+    move-result v4
+    if-eqz v4, :cond_done
+
+    invoke-interface {v3}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+    move-result-object v4
+    check-cast v4, Lcom/appx/core/model/NewDownloadModel;
+
+    # Get encryption, savedPath, key
+    invoke-virtual {v4}, Lcom/appx/core/model/NewDownloadModel;->getEncryption()Ljava/lang/String;
+    move-result-object v5
+    invoke-virtual {v4}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
+    move-result-object v6
+    invoke-virtual {v4}, Lcom/appx/core/model/NewDownloadModel;->getKey()Ljava/lang/String;
+    move-result-object v7
+
+    # Log item details
+    new-instance v8, Ljava/lang/StringBuilder;
+    const-string v0, "Item: enc="
+    invoke-direct {v8, v0}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+    invoke-virtual {v8, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v0, " path="
+    invoke-virtual {v8, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v8, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v8}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v0
+    const-string v8, "IGNITE_DEBUG"
+    invoke-static {v8, v0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    const-string v0, "IGNITE_DEBUG"
+
+    # Always try to decrypt (header check prevents double-XOR)
+    :cond_try_decrypt
+    # Need key and path to decrypt
+    if-eqz v7, :goto_loop
+    if-eqz v6, :goto_loop
+
+    invoke-virtual {v7}, Ljava/lang/String;->length()I
+    move-result v5
+
+    const/16 v8, 0x14
+
+    if-ge v5, v8, :cond_aes
+
+    # Key < 20: XOR decrypt — but first check if file is already a valid MP4
+    # Read first 8 bytes, check if bytes 4-7 are 'ftyp' (0x66 0x74 0x79 0x70)
+    :try_start_header
+    new-instance v5, Ljava/io/FileInputStream;
+    invoke-direct {v5, v6}, Ljava/io/FileInputStream;-><init>(Ljava/lang/String;)V
+
+    const/16 v8, 0x8
+    new-array v8, v8, [B
+    invoke-virtual {v5, v8}, Ljava/io/FileInputStream;->read([B)I
+    invoke-virtual {v5}, Ljava/io/FileInputStream;->close()V
+
+    # Check bytes 4-7 for 'f','t','y','p'
+    const/4 v5, 0x4
+    aget-byte v5, v8, v5    # byte[4]
+    const/16 v0, 0x66       # 'f'
+    if-ne v5, v0, :cond_needs_xor
+
+    const/4 v5, 0x5
+    aget-byte v5, v8, v5    # byte[5]
+    const/16 v0, 0x74       # 't'
+    if-ne v5, v0, :cond_needs_xor
+
+    const/4 v5, 0x6
+    aget-byte v5, v8, v5    # byte[6]
+    const/16 v0, 0x79       # 'y'
+    if-ne v5, v0, :cond_needs_xor
+
+    const/4 v5, 0x7
+    aget-byte v5, v8, v5    # byte[7]
+    const/16 v0, 0x70       # 'p'
+    if-ne v5, v0, :cond_needs_xor
+
+    # File IS a valid MP4 — already decrypted, skip
+    const-string v0, "IGNITE_DEBUG"
+    const-string v5, "  -> SKIP: file already has ftyp header (plain MP4)"
+    invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    goto :cond_mark_done
+    :try_end_header
+    .catch Ljava/lang/Exception; {:try_start_header .. :try_end_header} :catch_header
+
+    :catch_header
+    const-string v0, "IGNITE_DEBUG"
+    const-string v5, "  -> WARN: could not read header, attempting XOR anyway"
+    invoke-static {v0, v5}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+
+    :cond_needs_xor
+    const-string v0, "IGNITE_DEBUG"
+    const-string v5, "  -> XOR decrypt: m0.b(path, key)"
+    invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    invoke-static {v6, v7}, Lcom/appx/core/utils/m0;->b(Ljava/lang/String;Ljava/lang/String;)Z
+    move-result v5
+
+    new-instance v8, Ljava/lang/StringBuilder;
+    const-string v7, "  -> XOR result: "
+    invoke-direct {v8, v7}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+    invoke-virtual {v8, v5}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    invoke-virtual {v8}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v5
+    invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    goto :cond_mark_done
+
+    :cond_aes
+    # Key >= 20: AES decrypt
+    const-string v5, "  -> AES decrypt: b0.h(key, file, true)"
+    invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    new-instance v5, Ljava/io/File;
+    invoke-direct {v5, v6}, Ljava/io/File;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v5}, Ljava/io/File;->exists()Z
+    move-result v8
+    if-nez v8, :cond_file_exists
+
+    const-string v5, "  -> SKIP: file not found"
+    invoke-static {v0, v5}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+    goto :goto_loop
+
+    :cond_file_exists
+    const/4 v8, 0x1
+    invoke-static {v7, v5, v8}, Lcom/appx/core/utils/b0;->h(Ljava/lang/String;Ljava/io/File;Z)[B
+
+    const-string v5, "  -> AES done"
+    invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    :cond_mark_done
+    # Mark encryption="2" so we don't re-process next time
+    const-string v5, "  -> Marking encryption=0"
+    invoke-static {v0, v5}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    iget-object v5, p0, Lcom/appx/core/fragment/NewDownloadVideoFragment;->newDownloadViewModel:Lcom/appx/core/viewmodel/NewDownloadViewModel;
+    invoke-virtual {v4}, Lcom/appx/core/model/NewDownloadModel;->getSavedPath()Ljava/lang/String;
+    move-result-object v6
+    const-string v7, "0"
+    invoke-virtual {v5, v6, v2, v7}, Lcom/appx/core/viewmodel/NewDownloadViewModel;->setEncryptionValue(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+
+    goto :goto_loop
+
+
+
+    :cond_done
+    const-string v0, "IGNITE_DEBUG"
+    const-string v1, "=== decryptAllVideos() END ==="
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
     return-void
 .end method
 
